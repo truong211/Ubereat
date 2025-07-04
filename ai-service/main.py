@@ -119,21 +119,25 @@ async def chat_support(message: ChatMessage):
     AI-powered chat support for customer queries.
     """
     try:
-        # Placeholder implementation - replace with actual NLP model
+        # Improved intent classification logic with priority ordering
         user_message = message.message.lower()
         
-        if "order" in user_message and "status" in user_message:
-            response = "I can help you check your order status. Please provide your order number."
-            intent = "order_status"
-            confidence = 0.9
-        elif "delivery" in user_message and "time" in user_message:
-            response = "Typical delivery times are 25-40 minutes depending on your location and restaurant preparation time."
-            intent = "delivery_inquiry"
-            confidence = 0.85
-        elif "refund" in user_message or "cancel" in user_message:
+        # Refund/cancellation requests (check first - highest priority)
+        if any(word in user_message for word in ["refund", "cancel", "money back", "return"]):
             response = "I understand you want to cancel or request a refund. Let me connect you with our support team."
             intent = "refund_request"
             confidence = 0.88
+        # Delivery time queries
+        elif any(phrase in user_message for phrase in ["delivery", "how long", "delivery take", "time"]):
+            response = "Typical delivery times are 25-40 minutes depending on your location and restaurant preparation time."
+            intent = "delivery_inquiry"
+            confidence = 0.85
+        # Order status queries (after refund/cancel to avoid conflicts)
+        elif any(word in user_message for word in ["order", "where is my", "status", "track"]):
+            response = "I can help you check your order status. Please provide your order number."
+            intent = "order_status"
+            confidence = 0.9
+        # General greetings and inquiries
         else:
             response = "I'm here to help! Can you please provide more details about your question?"
             intent = "general_inquiry"
@@ -147,16 +151,22 @@ async def chat_support(message: ChatMessage):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Pydantic model for price prediction
+class PricePredictionRequest(BaseModel):
+    restaurant_id: int
+    menu_items: List[dict]
+    location: dict
+
 # Price prediction
 @app.post("/analytics/price-prediction")
-async def predict_price(restaurant_id: int, menu_items: List[dict], location: dict):
+async def predict_price(request: PricePredictionRequest):
     """
     Predict optimal pricing for menu items based on market data and demand.
     """
     try:
         # Placeholder implementation
         predictions = []
-        for item in menu_items:
+        for item in request.menu_items:
             predictions.append({
                 "item_id": item.get("id"),
                 "current_price": item.get("price"),
@@ -191,16 +201,20 @@ async def forecast_demand(restaurant_id: int, hours_ahead: int = 24):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Pydantic model for sentiment analysis
+class SentimentRequest(BaseModel):
+    reviews: List[str]
+
 # Sentiment analysis for reviews
 @app.post("/analytics/sentiment")
-async def analyze_sentiment(reviews: List[str]):
+async def analyze_sentiment(request: SentimentRequest):
     """
     Analyze sentiment of customer reviews and feedback.
     """
     try:
         # Placeholder implementation
         results = []
-        for review in reviews:
+        for review in request.reviews:
             # Simple keyword-based sentiment (replace with actual model)
             positive_words = ["good", "great", "excellent", "amazing", "love"]
             negative_words = ["bad", "terrible", "awful", "hate", "worst"]

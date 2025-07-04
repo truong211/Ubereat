@@ -2,7 +2,7 @@
 node_modules/
 */node_modules/
 *.lock
-package-lock.json
+# package-lock.json should be committed for reproducible builds
 yarn.lock
 
 # Environment variables
