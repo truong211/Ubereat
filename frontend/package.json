@@ -48,11 +48,18 @@
       "**/*.(test|spec).(ts|tsx|js|jsx)"
     ],
     "transform": {
-      "^.+\\.(ts|tsx)$": "ts-jest"
+      "^.+\\.(ts|tsx)$": ["ts-jest", {
+        "tsconfig": {
+          "jsx": "react-jsx"
+        }
+      }]
     },
     "setupFilesAfterEnv": ["<rootDir>/jest.setup.js"],
-    "moduleNameMapping": {
+    "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/src/$1"
-    }
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!(.*\\.mjs$))"
+    ]
   }
 }

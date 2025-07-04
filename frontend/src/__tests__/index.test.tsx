@@ -1,12 +1,22 @@
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import Home from '../app/page';
+
+// Interface for Next.js Image props
+interface MockImageProps {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  className?: string;
+  style?: React.CSSProperties;
+}
 
 // Mock Next.js Image component
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: (props: any) => {
+  default: (props: MockImageProps) => {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img {...props} alt={props.alt} />;
+    return <img src={props.src} alt={props.alt} className={props.className} style={props.style} />;
   },
 }));
 
