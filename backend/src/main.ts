@@ -7,11 +7,11 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const configService = app.get(ConfigService);
+  const configService = app.get<ConfigService>(ConfigService);
 
   // Enable CORS
   app.enableCors({
-    origin: configService.get('CORS_ORIGIN', 'http://localhost:3000'),
+    origin: configService.get<string>('CORS_ORIGIN', 'http://localhost:3000'),
     credentials: true,
   });
 
@@ -21,7 +21,8 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-      disableErrorMessages: configService.get('NODE_ENV') === 'production',
+      disableErrorMessages:
+        configService.get<string>('NODE_ENV') === 'production',
     }),
   );
 
@@ -29,7 +30,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   // Swagger documentation
-  if (configService.get('NODE_ENV') !== 'production') {
+  if (configService.get<string>('NODE_ENV') !== 'production') {
     const config = new DocumentBuilder()
       .setTitle('UberEats Clone API')
       .setDescription('The UberEats Clone API documentation')
@@ -55,10 +56,14 @@ async function bootstrap() {
     });
   }
 
-  const port = configService.get('PORT', 3001);
+  const port = configService.get<number>('PORT', 3001);
   await app.listen(port);
-  
+
   console.log(`🚀 Application is running on: http://localhost:${port}`);
   console.log(`📚 API Documentation: http://localhost:${port}/docs`);
 }
-bootstrap();
+
+void bootstrap().catch((error) => {
+  console.error('Failed to start the application:', error);
+  process.exit(1);
+});

@@ -18,7 +18,7 @@ import { UsersModule } from '../users/users.module';
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
           expiresIn: configService.get<string>('JWT_EXPIRES_IN', '7d'),
@@ -30,12 +30,7 @@ import { UsersModule } from '../users/users.module';
     UsersModule,
   ],
   controllers: [AuthController],
-  providers: [
-    AuthService,
-    JwtStrategy,
-    LocalStrategy,
-    RefreshTokenStrategy,
-  ],
+  providers: [AuthService, JwtStrategy, LocalStrategy, RefreshTokenStrategy],
   exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

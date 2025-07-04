@@ -8,7 +8,12 @@ import {
   Request,
   Get,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
@@ -21,6 +26,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { AuthTokens } from './interfaces/auth-tokens.interface';
+import { AuthenticatedRequest } from './interfaces/auth-request.interface';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -52,7 +58,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Token successfully refreshed' })
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
   async refresh(
-    @Request() req,
+    @Request() req: AuthenticatedRequest,
     @Body() refreshTokenDto: RefreshTokenDto,
   ): Promise<AuthTokens> {
     const userId = req.user.sub;
@@ -66,7 +72,9 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout user' })
   @ApiResponse({ status: 200, description: 'User successfully logged out' })
-  async logout(@Request() req): Promise<{ message: string }> {
+  async logout(
+    @Request() req: AuthenticatedRequest,
+  ): Promise<{ message: string }> {
     const userId = req.user.sub;
     await this.authService.logout(userId);
     return { message: 'Successfully logged out' };
@@ -106,7 +114,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Password successfully changed' })
   @ApiResponse({ status: 400, description: 'Current password is incorrect' })
   async changePassword(
-    @Request() req,
+    @Request() req: AuthenticatedRequest,
     @Body() changePasswordDto: ChangePasswordDto,
   ): Promise<{ message: string }> {
     const userId = req.user.sub;
@@ -123,7 +131,7 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'Current user profile' })
-  getProfile(@Request() req) {
+  getProfile(@Request() req: AuthenticatedRequest) {
     return req.user;
   }
 

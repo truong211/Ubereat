@@ -9,7 +9,10 @@ import { User } from '../../users/entities/user.entity';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 
 @Injectable()
-export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
+export class RefreshTokenStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-refresh',
+) {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
@@ -28,7 +31,9 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'jwt-refres
     });
 
     if (!user || !user.isActive || !user.refreshToken) {
-      throw new UnauthorizedException('User not found, inactive, or no refresh token');
+      throw new UnauthorizedException(
+        'User not found, inactive, or no refresh token',
+      );
     }
 
     return user;

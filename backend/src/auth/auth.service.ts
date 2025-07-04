@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
@@ -22,10 +27,19 @@ export class AuthService {
   ) {}
 
   async register(createUserDto: CreateUserDto): Promise<AuthTokens> {
-    const { email, password, firstName, lastName, phone, role = UserRole.CUSTOMER } = createUserDto;
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      phone,
+      role = UserRole.CUSTOMER,
+    } = createUserDto;
 
     // Check if user already exists
-    const existingUser = await this.userRepository.findOne({ where: { email } });
+    const existingUser = await this.userRepository.findOne({
+      where: { email },
+    });
     if (existingUser) {
       throw new ConflictException('User with this email already exists');
     }
@@ -68,7 +82,7 @@ export class AuthService {
     }
 
     // Update last login
-    await this.userRepository.update(user.id, { 
+    await this.userRepository.update(user.id, {
       lastLoginAt: new Date(),
       updatedAt: new Date(),
     });
@@ -78,22 +92,28 @@ export class AuthService {
 
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.userRepository.findOne({ where: { email } });
-    
-    if (user && await bcrypt.compare(password, user.password)) {
+
+    if (user && (await bcrypt.compare(password, user.password))) {
       return user;
     }
-    
+
     return null;
   }
 
-  async refreshTokens(userId: string, refreshToken: string): Promise<AuthTokens> {
+  async refreshTokens(
+    userId: string,
+    refreshToken: string,
+  ): Promise<AuthTokens> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    
+
     if (!user || !user.refreshToken) {
       throw new UnauthorizedException('Access denied');
     }
 
-    const refreshTokenMatches = await bcrypt.compare(refreshToken, user.refreshToken);
+    const refreshTokenMatches = await bcrypt.compare(
+      refreshToken,
+      user.refreshToken,
+    );
     if (!refreshTokenMatches) {
       throw new UnauthorizedException('Access denied');
     }
@@ -102,7 +122,7 @@ export class AuthService {
   }
 
   async logout(userId: string): Promise<void> {
-    await this.userRepository.update(userId, { 
+    await this.userRepository.update(userId, {
       refreshToken: null,
       updatedAt: new Date(),
     });
@@ -159,7 +179,11 @@ export class AuthService {
     });
   }
 
-  async changePassword(userId: string, oldPassword: string, newPassword: string): Promise<void> {
+  async changePassword(
+    userId: string,
+    oldPassword: string,
+    newPassword: string,
+  ): Promise<void> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new UnauthorizedException('User not found');
@@ -193,13 +217,16 @@ export class AuthService {
       }),
       this.jwtService.signAsync(payload, {
         secret: this.configService.get<string>('REFRESH_TOKEN_SECRET'),
-        expiresIn: this.configService.get<string>('REFRESH_TOKEN_EXPIRES_IN', '7d'),
+        expiresIn: this.configService.get<string>(
+          'REFRESH_TOKEN_EXPIRES_IN',
+          '7d',
+        ),
       }),
     ]);
 
     // Hash and store refresh token
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-    await this.userRepository.update(user.id, { 
+    await this.userRepository.update(user.id, {
       refreshToken: hashedRefreshToken,
       updatedAt: new Date(),
     });
