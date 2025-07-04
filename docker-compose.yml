@@ -28,6 +28,7 @@ services:
     ports:
       - "3001:3001"
     environment:
+      - PORT=3001
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/ubereats
       - MONGODB_URI=mongodb://mongo:27017/ubereats
       - JWT_SECRET=${JWT_SECRET}

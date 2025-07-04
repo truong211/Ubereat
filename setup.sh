@@ -84,7 +84,7 @@ sleep 30
 # Check service health
 echo "🏥 Checking service health..."
 echo "Frontend: $(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 || echo "Not responding")"
-echo "Backend: $(curl -s -o /dev/null -w "%{http_code}" http://localhost:3001/health || echo "Not responding")"
+echo "Backend: $(curl -s -o /dev/null -w "%{http_code}" http://localhost:3001 || echo "Not responding")"
 echo "AI Service: $(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health || echo "Not responding")"
 
 echo ""
