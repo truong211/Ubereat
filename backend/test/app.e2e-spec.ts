@@ -1,11 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
-import { App } from 'supertest/types';
+import request from 'supertest';
 import { TestAppModule } from './test-app.module';
 
 describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
+  let app: INestApplication;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -20,23 +19,19 @@ describe('AppController (e2e)', () => {
     await app.close();
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
+  it('/ (GET)', async () => {
+    const response = await request(app.getHttpServer()).get('/').expect(200);
+
+    expect(response.text).toBe('Hello World!');
   });
 
-  it('should return 404 for non-existent route', () => {
-    return request(app.getHttpServer()).get('/non-existent-route').expect(404);
+  it('should return 404 for non-existent route', async () => {
+    await request(app.getHttpServer()).get('/non-existent-route').expect(404);
   });
 
-  it('should return valid response headers', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect((res) => {
-        expect(res.headers['content-type']).toMatch(/text\/html/);
-      });
+  it('should return valid response headers', async () => {
+    const response = await request(app.getHttpServer()).get('/').expect(200);
+
+    expect(response.headers['content-type']).toMatch(/text\/html/);
   });
 });
