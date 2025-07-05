@@ -55,13 +55,14 @@ export class LoggingInterceptor implements NestInterceptor {
       tap({
         next: (responseBody: unknown) => {
           const responseTime = Date.now() - now;
+          const responseSize = this.getResponseSize(responseBody);
           this.logger.log(
             `${method} ${url} ${response.statusCode} - ${responseTime}ms`,
             JSON.stringify({
               ...logData,
               statusCode: response.statusCode,
               responseTime,
-              responseSize: JSON.stringify(responseBody).length,
+              responseSize,
             }),
           );
         },
@@ -97,5 +98,54 @@ export class LoggingInterceptor implements NestInterceptor {
     });
 
     return sanitized;
+  }
+
+  private getResponseSize(responseBody: unknown): number {
+    try {
+      if (responseBody === null || responseBody === undefined) {
+        return 0;
+      }
+
+      // Handle primitive types
+      if (typeof responseBody !== 'object') {
+        if (responseBody === null || responseBody === undefined) {
+          return 0;
+        }
+        // Safe string conversion for primitives
+        if (typeof responseBody === 'string') {
+          return responseBody.length;
+        }
+        if (
+          typeof responseBody === 'number' ||
+          typeof responseBody === 'boolean'
+        ) {
+          return responseBody.toString().length;
+        }
+        return 0; // Fallback for other primitive types
+      }
+
+      // Use a safe JSON stringifier that handles circular references
+      const jsonString = JSON.stringify(
+        responseBody,
+        this.getCircularReplacer(),
+      );
+      return jsonString.length;
+    } catch {
+      // Fallback if JSON.stringify still fails - return a constant safe size
+      return 50; // Return a reasonable default size for unknown objects
+    }
+  }
+
+  private getCircularReplacer(): (key: string, value: unknown) => unknown {
+    const seen = new WeakSet<object>();
+    return (key: string, value: unknown): unknown => {
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) {
+          return '[Circular]';
+        }
+        seen.add(value);
+      }
+      return value;
+    };
   }
 }

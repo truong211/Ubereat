@@ -28,11 +28,19 @@ export class SecurityMiddleware implements NestMiddleware {
       crossOriginEmbedderPolicy: false,
     });
 
-    helmetMiddleware(req, res, () => {
+    helmetMiddleware(req, res, (helmetErr?: any) => {
+      if (helmetErr) {
+        return next(helmetErr);
+      }
+
       // Apply compression after helmet
       const compressionMiddleware = compression();
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      compressionMiddleware(req, res, () => {
+      compressionMiddleware(req, res, (compressionErr?: any) => {
+        if (compressionErr) {
+          return next(compressionErr);
+        }
+
         // Add custom security headers
         res.setHeader('X-Request-ID', this.generateRequestId());
         res.setHeader('X-Response-Time', Date.now().toString());
