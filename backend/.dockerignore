@@ -76,6 +76,7 @@ nodemon.json
 .prettierrc
 .eslintrc*
 # tsconfig.json - NEEDED for build
+# tsconfig.build.json - NEEDED for build
 jest.config.js
 
 # Database
