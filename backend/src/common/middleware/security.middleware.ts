@@ -1,7 +1,7 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
-import compression from 'compression';
+import * as compression from 'compression';
 
 @Injectable()
 export class SecurityMiddleware implements NestMiddleware {
@@ -34,8 +34,10 @@ export class SecurityMiddleware implements NestMiddleware {
       }
 
       // Apply compression after helmet
-      const compressionMiddleware = compression();
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+      const compressionMiddleware = (compression as any)();
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       compressionMiddleware(req, res, (compressionErr?: any) => {
         if (compressionErr) {
           return next(compressionErr);
