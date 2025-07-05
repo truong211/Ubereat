@@ -7,7 +7,7 @@ import * as compression from 'compression';
 export class SecurityMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     // Apply security headers with helmet
-    helmet({
+    const helmetMiddleware = helmet({
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
@@ -26,19 +26,23 @@ export class SecurityMiddleware implements NestMiddleware {
         },
       },
       crossOriginEmbedderPolicy: false,
-    })(req, res, () => {});
+    });
 
-    // Apply compression
-    compression()(req, res, () => {});
+    helmetMiddleware(req, res, () => {
+      // Apply compression after helmet
+      const compressionMiddleware = compression();
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      compressionMiddleware(req, res, () => {
+        // Add custom security headers
+        res.setHeader('X-Request-ID', this.generateRequestId());
+        res.setHeader('X-Response-Time', Date.now().toString());
 
-    // Add custom security headers
-    res.setHeader('X-Request-ID', this.generateRequestId());
-    res.setHeader('X-Response-Time', Date.now().toString());
+        // Remove server signature
+        res.removeHeader('X-Powered-By');
 
-    // Remove server signature
-    res.removeHeader('X-Powered-By');
-
-    next();
+        next();
+      });
+    });
   }
 
   private generateRequestId(): string {

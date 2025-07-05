@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { QueryFailedError, EntityNotFoundError } from 'typeorm';
-import { ValidationError } from 'class-validator';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -38,23 +37,28 @@ export class AllExceptionsFilter implements ExceptionFilter {
     response.status(status).json(errorResponse);
   }
 
-  private getErrorResponse(exception: unknown) {
+  private getErrorResponse(exception: unknown): {
+    status: number;
+    message: string;
+    error: string;
+    validationErrors?: string[];
+  } {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
     let error = 'InternalServerError';
-    let validationErrors: any[] | undefined;
+    let validationErrors: string[] | undefined;
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const response = exception.getResponse();
 
       if (typeof response === 'object' && response !== null) {
-        message = (response as any).message || exception.message;
-        error = (response as any).error || exception.name;
-        validationErrors =
-          (response as any).message instanceof Array
-            ? (response as any).message
-            : undefined;
+        const responseObj = response as Record<string, unknown>;
+        message = (responseObj.message as string) || exception.message;
+        error = (responseObj.error as string) || exception.name;
+        validationErrors = Array.isArray(responseObj.message)
+          ? (responseObj.message as string[])
+          : undefined;
       } else {
         message = response;
         error = exception.name;
@@ -90,14 +94,28 @@ export class AllExceptionsFilter implements ExceptionFilter {
   private logError(
     exception: unknown,
     request: Request,
-    errorResponse: any,
+    errorResponse: {
+      success: boolean;
+      statusCode: number;
+      timestamp: string;
+      path: string;
+      method: string;
+      message: string;
+      error: string;
+      validationErrors?: string[];
+    },
   ): void {
     const { statusCode, message } = errorResponse;
-    const { method, url, body, params, query } = request;
+    const method = request.method;
+    const url = request.url;
+    const body = request.body as unknown;
+    const params = request.params as unknown;
+    const query = request.query as unknown;
 
     const logMessage = `${method} ${url} ${statusCode} - ${message}`;
     const logContext = {
-      exception: exception instanceof Error ? exception.stack : exception,
+      exception:
+        exception instanceof Error ? exception.stack : String(exception),
       request: {
         method,
         url,
