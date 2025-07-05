@@ -223,7 +223,7 @@ jobs:
 
   # Validate Deployment Configuration (PR only)
   validate-deployment:
-    needs: [docker-build]
+    needs: [frontend-test, backend-test, ai-service-test]
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     
@@ -295,7 +295,7 @@ jobs:
   # CI/CD Summary (Always runs)
   ci-cd-summary:
     if: always()
-    needs: [frontend-test, backend-test, ai-service-test, security-scan, docker-build]
+    needs: [frontend-test, backend-test, ai-service-test, security-scan, docker-build, validate-deployment]
     runs-on: ubuntu-latest
     
     steps:
@@ -313,10 +313,12 @@ jobs:
         echo "- Docker Build: ${{ needs.docker-build.result }}" >> $GITHUB_STEP_SUMMARY
         
         if [ "${{ github.event_name }}" == "pull_request" ]; then
+          echo "- Deployment Validation: ${{ needs.validate-deployment.result }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## ✅ Pull Request Status" >> $GITHUB_STEP_SUMMARY
           echo "This PR has been validated and is ready for review!" >> $GITHUB_STEP_SUMMARY
           echo "- Docker images built and tested successfully" >> $GITHUB_STEP_SUMMARY
+          echo "- Deployment configuration validated" >> $GITHUB_STEP_SUMMARY
         elif [ "${{ github.ref }}" == "refs/heads/develop" ]; then
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 🧪 Staging Deployment" >> $GITHUB_STEP_SUMMARY
