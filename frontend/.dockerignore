@@ -74,10 +74,11 @@ docs/
 # Development files
 .prettierrc
 .eslintrc*
-tsconfig.json
-next.config.js
-tailwind.config.js
-postcss.config.js
+# Keep config files needed for build
+# tsconfig.json
+# next.config.js
+# tailwind.config.js
+# postcss.config.js
 
 # Storybook
 .storybook

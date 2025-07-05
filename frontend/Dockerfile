@@ -24,9 +24,14 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy the standalone output
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+# Copy package files
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy built application from builder stage
+COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 
 # Set ownership
@@ -37,4 +42,4 @@ USER nextjs
 EXPOSE 3000
 
 # Start the application
-CMD ["node", "server.js"]
+CMD ["npm", "start"]
