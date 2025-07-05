@@ -234,7 +234,7 @@ jobs:
       run: |
         echo "Validating deployment configuration..."
         if [ -f "docker-compose.yml" ]; then
-          docker-compose config
+          docker compose config
           echo "✅ Docker Compose configuration is valid"
         else
           echo "⚠️ docker-compose.yml not found, skipping validation"
