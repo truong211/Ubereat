@@ -60,7 +60,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
           ? (responseObj.message as string[])
           : undefined;
       } else {
-        message = response;
+        message = typeof response === 'string' ? response : exception.message;
         error = exception.name;
       }
     } else if (exception instanceof QueryFailedError) {
