@@ -91,6 +91,31 @@ export class AllExceptionsFilter implements ExceptionFilter {
     return { status, message, error, validationErrors };
   }
 
+  private getExceptionDetails(exception: unknown): string {
+    if (exception instanceof Error) {
+      return exception.stack || exception.message;
+    }
+
+    if (typeof exception === 'string') {
+      return exception;
+    }
+
+    if (typeof exception === 'number' || typeof exception === 'boolean') {
+      return String(exception);
+    }
+
+    if (typeof exception === 'object' && exception !== null) {
+      try {
+        return JSON.stringify(exception, null, 2);
+      } catch {
+        return '[Complex Object - cannot stringify]';
+      }
+    }
+
+    // Handle null, undefined, symbol, function, etc.
+    return exception == null ? 'null/undefined' : '[Unknown exception type]';
+  }
+
   private logError(
     exception: unknown,
     request: Request,
@@ -114,8 +139,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const logMessage = `${method} ${url} ${statusCode} - ${message}`;
     const logContext = {
-      exception:
-        exception instanceof Error ? exception.stack : String(exception),
+      exception: this.getExceptionDetails(exception),
       request: {
         method,
         url,
