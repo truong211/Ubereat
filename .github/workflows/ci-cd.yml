@@ -125,15 +125,17 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
-        cache-dependency-path: ai-service/requirements.txt
+        cache-dependency-path: ai-service/requirements-ci.txt
     
-    - name: Install dependencies
+    - name: Install lightweight dependencies for testing
       run: |
-        pip install -r requirements.txt
-        pip install pytest pytest-cov
+        pip install -r requirements-ci.txt
     
-    - name: Run tests
+    - name: Run tests with mocked AI services
       run: pytest --cov=. --cov-report=xml
+      env:
+        CI_TESTING: true
+        USE_MOCK_AI: true
     
     - name: Upload coverage
       uses: codecov/codecov-action@v3
@@ -167,6 +169,17 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Free disk space for build
+      run: |
+        echo "🧹 Freeing disk space..."
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /opt/ghc
+        sudo rm -rf /opt/hostedtoolcache/CodeQL
+        sudo docker system prune -af
+        echo "📊 Available disk space:"
+        df -h
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -202,10 +215,11 @@ jobs:
         cache-to: type=gha,mode=max
         load: ${{ github.event_name == 'pull_request' }}
     
-    - name: Build and test AI Service Docker image
+    - name: Build and test AI Service Docker image (Lightweight for PR)
       uses: docker/build-push-action@v5
       with:
         context: ./ai-service
+        file: ${{ github.event_name == 'pull_request' && './ai-service/Dockerfile.ci' || './ai-service/Dockerfile' }}
         push: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
         tags: |
           ${{ github.event_name == 'pull_request' && 'ubereats-ai-service:pr-test' || format('{0}/ubereats-ai-service:latest', secrets.DOCKER_USERNAME) }}
@@ -220,6 +234,8 @@ jobs:
         echo "Testing Docker images..."
         docker images
         echo "✅ All Docker images built successfully for PR validation"
+        echo "📊 Final disk space:"
+        df -h
 
   # Validate Deployment Configuration (PR only)
   validate-deployment:
