@@ -80,6 +80,16 @@ Check that the fix is working:
 2. **Build Times**: PR builds complete in ~5 minutes ✅  
 3. **Disk Usage**: Check workflow logs - disk usage stays under 50% ✅
 4. **Test Coverage**: All endpoints tested with mock AI services ✅
+5. **Requirements**: All packages in requirements-ci.txt are valid and installable ✅
+
+### Test Installation Locally
+```bash
+# Test the lightweight requirements 
+pip install -r ai-service/requirements-ci.txt
+
+# Verify mocking capability (built into Python)
+python3 -c "import unittest.mock; print('✅ Mocking ready!')"
+```
 
 ## 🛠️ For Developers
 

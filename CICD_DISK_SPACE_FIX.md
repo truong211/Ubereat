@@ -164,6 +164,16 @@ To verify the fix is working:
 3. **Test coverage**: ✅ All endpoints tested
 4. **Build performance**: ✅ Consistent 5-minute builds
 5. **Production readiness**: ✅ Full AI stack available
+6. **Requirements validation**: ✅ All packages in requirements-ci.txt are valid
+
+### Package Installation Test
+```bash
+# Test the lightweight requirements (fixed)
+pip install -r ai-service/requirements-ci.txt
+
+# Note: unittest.mock is part of Python standard library since 3.3
+python3 -c "import unittest.mock; print('✅ Mocking available')"
+```
 
 ## 📞 Support
 
