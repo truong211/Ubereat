@@ -1,0 +1,20 @@
+# Lightweight CI/CD dependencies (no heavy ML libraries)
+fastapi==0.115.14
+uvicorn==0.35.0
+pydantic==2.11.7
+python-multipart==0.0.12
+requests==2.32.3
+python-dotenv==1.0.1
+aiofiles==24.1.0
+
+# Minimal ML dependencies for testing
+numpy==1.26.4
+pandas==2.2.3
+Pillow==11.0.0
+
+# Testing dependencies
+pytest==8.4.1
+pytest-cov==6.2.1
+httpx==0.28.1
+
+# Note: unittest.mock is part of Python standard library, no additional package needed

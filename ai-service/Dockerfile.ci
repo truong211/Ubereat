@@ -1,0 +1,28 @@
+# Lightweight Docker image for CI/CD testing
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install minimal system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Copy lightweight requirements
+COPY requirements-ci.txt .
+
+# Install minimal Python dependencies
+RUN pip install --no-cache-dir -r requirements-ci.txt
+
+# Copy source code
+COPY . .
+
+# Create mock AI service for testing
+RUN echo 'import logging\nlogging.basicConfig(level=logging.INFO)\nlogger = logging.getLogger(__name__)\n\nclass MockAIService:\n    def __init__(self):\n        logger.info("Mock AI Service initialized for testing")\n    \n    def generate_recommendation(self, *args, **kwargs):\n        return {"recommendation": "mock_recommendation", "confidence": 0.95}\n    \n    def analyze_sentiment(self, text):\n        return {"sentiment": "positive", "score": 0.8}\n\nai_service = MockAIService()' > mock_ai.py
+
+# Expose port
+EXPOSE 8000
+
+# Start the application
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
